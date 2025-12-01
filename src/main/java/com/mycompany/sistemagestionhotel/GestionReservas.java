@@ -3,124 +3,128 @@ package com.mycompany.sistemagestionhotel;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 public class GestionReservas {
     private List<Reserva> reservas;
     private GestionHabitaciones gestionHabitaciones;
-    private int nextReservaId;
+    private DatosHotel datos;
     private SistemaGestionHotel sistema;
 
-    public GestionReservas(List<Reserva> reservas, 
-            GestionHabitaciones gestionHabitaciones, int nextReservaId, 
-            SistemaGestionHotel sistema) {
+    public GestionReservas(List<Reserva> reservas, GestionHabitaciones gestionHabitaciones, 
+                           DatosHotel datos, SistemaGestionHotel sistema) {
         this.reservas = reservas;
         this.gestionHabitaciones = gestionHabitaciones;
-        this.nextReservaId = nextReservaId;
+        this.datos = datos;
         this.sistema = sistema;
     }
 
-    /**
-     * Crear reserva -> REQUIERE asociar cliente (por cédula). Se guarda la 
-     * cédula en cedulaCheckIn.
-     */
     public Reserva crearReserva(LocalDate fechaInicio, LocalDate fechaFin, 
-            Habitacion habitacion, String metodoPago, String cedulaCliente) {
+                                Habitacion habitacion, String metodoPago, String cedulaCliente) {
         
-        if (fechaFin.isBefore(fechaInicio)) throw new 
-        IllegalArgumentException("Fecha fin anterior a fecha inicio");
-        
-        List<Habitacion> disp = 
-                gestionHabitaciones.buscarHabitacionesDisponibles(fechaInicio, 
-                        fechaFin);
-        boolean disponible = disp.stream().anyMatch(h -> h.getNumero() 
-                == habitacion.getNumero());
-        if (!disponible) {
-            throw new IllegalStateException("La habitación no está disponible "
-                    + "para las fechas solicitadas");
+        if (fechaFin.isBefore(fechaInicio)) {
+            throw new IllegalArgumentException("La fecha de fin no puede ser anterior a la de inicio.");
         }
-        
-        Reserva r = new Reserva(nextReservaId++, fechaInicio, fechaFin, 
-                EstadoReserva.CONFIRMADA, habitacion, cedulaCliente, metodoPago);
-        this.reservas.add(r);
-        
-        gestionHabitaciones.cambiarEstadoHabitacion(habitacion.getNumero(), 
-                EstadoHabitacion.RESERVADA);
-        
-        try {
-            sistema.guardarReservas();
-            sistema.guardarHabitaciones();
-        } catch (Exception e) {
-            System.err.println("Error guardando reserva/habitaciones: " + e.getMessage());
-        }
-        return r;
-    }
 
-    public void cancelarReserva(int reservaId) {
-        Reserva r = buscarReservaPorId(reservaId);
-        if (r == null) throw new NoSuchElementException("Reserva no encontrada");
-        r.setEstado(EstadoReserva.CANCELADA);
-        Habitacion h = r.getHabitacion();
-        
-        gestionHabitaciones.cambiarEstadoHabitacion(h.getNumero(), 
-                EstadoHabitacion.DISPONIBLE);
-        
-        try {
-            sistema.guardarReservas();
-            sistema.guardarHabitaciones();
-        } catch (Exception e) {
-            System.err.println("Error guardando cancelación: " + e.getMessage());
+        // Verificar disponibilidad
+        List<Habitacion> disponibles = gestionHabitaciones.buscarHabitacionesDisponibles(fechaInicio, fechaFin);
+        boolean estaDisponible = disponibles.stream().anyMatch(h -> h.getNumero() == habitacion.getNumero());
+
+        if (!estaDisponible) {
+            throw new IllegalStateException("La habitación " + habitacion.getNumero() + " no está disponible en esas fechas.");
         }
+
+        // Crear la reserva
+        Reserva nuevaReserva = new Reserva(
+            datos.getNextReservaId(),
+            fechaInicio,
+            fechaFin,
+            EstadoReserva.CONFIRMADA,
+            habitacion,
+            cedulaCliente,
+            metodoPago
+        );
+
+        // Actualizar IDs y listas
+        datos.setNextReservaId(datos.getNextReservaId() + 1);
+        this.reservas.add(nuevaReserva);
+
+        // Guardar cambios
+        sistema.guardarReservas();
+        
+        return nuevaReserva;
     }
 
     public void realizarCheckIn(int reservaId, String cedulaCliente) {
         Reserva r = buscarReservaPorId(reservaId);
-        if (r == null) throw new NoSuchElementException("Reserva no encontrada");
-        r.realizarCheckIn(cedulaCliente);
-        r.setEstado(EstadoReserva.CHECK_IN_REALIZADO);
-        Habitacion h = r.getHabitacion();
+        if (r == null) throw new NoSuchElementException("Reserva no encontrada con ID: " + reservaId);
         
-        gestionHabitaciones.cambiarEstadoHabitacion(h.getNumero(), 
-                EstadoHabitacion.OCUPADA);
-        
-        try {
-            sistema.guardarReservas();
-            sistema.guardarHabitaciones();
-        } catch (Exception e) {
-            System.err.println("Error guardando check-in: " + e.getMessage());
+        // Validar que la reserva pertenezca al cliente (opcional pero recomendado)
+        if (!r.getCedulaCheckIn().equals(cedulaCliente)) {
+             // En este diseño simple, permitimos el check-in si coincide el ID, 
+             // pero podrías lanzar error si la cédula no coincide.
         }
+
+        r.realizarCheckIn(cedulaCliente); // Cambia estado a CHECK_IN_REALIZADO
+        sistema.guardarReservas();
     }
 
     public void realizarCheckOut(int reservaId) {
         Reserva r = buscarReservaPorId(reservaId);
-        if (r == null) throw new NoSuchElementException("Reserva no encontrada");
+        if (r == null) throw new NoSuchElementException("Reserva no encontrada con ID: " + reservaId);
+
+        // 1. Cambiar estado a FINALIZADA
         r.realizarCheckOut();
-        r.setEstado(EstadoReserva.FINALIZADA);
-        Habitacion h = r.getHabitacion();
         
-        gestionHabitaciones.cambiarEstadoHabitacion(h.getNumero(), 
-                EstadoHabitacion.DISPONIBLE);
+        // 2. Liberar habitación (aunque tu lógica de disponibilidad se basa en fechas, 
+        // cambiar el estado de la habitación es buena práctica visual)
+        gestionHabitaciones.cambiarEstadoHabitacion(r.getHabitacion().getNumero(), EstadoHabitacion.DISPONIBLE);
+
+        // --- CORRECCIÓN: ELIMINAMOS EL PAGO AUTOMÁTICO ---
+        // sistema.marcarFacturaComoPagada(reservaId); <--- ESTO CAUSABA EL ERROR
+        // El pago ahora se hace manualmente con la opción 7 del menú
         
-        try {
-            sistema.guardarReservas();
-            sistema.guardarHabitaciones();
-        } catch (Exception e) {
-            System.err.println("Error guardando check-out: " + e.getMessage());
+        // 3. Guardar cambios
+        sistema.guardarReservas();
+        sistema.guardarHabitaciones();
+    }
+
+    public void cancelarReserva(int reservaId) {
+        Reserva r = buscarReservaPorId(reservaId);
+        if (r == null) throw new NoSuchElementException("Reserva no encontrada con ID: " + reservaId);
+
+        if (r.getEstado() == EstadoReserva.FINALIZADA) {
+            throw new IllegalStateException("No se puede cancelar una reserva ya finalizada.");
         }
+
+        r.setEstado(EstadoReserva.CANCELADA);
+        sistema.guardarReservas();
+    }
+    
+    // Método para borrar reserva físicamente (Admin)
+    public void borrarReserva(int idReserva) {
+        Reserva r = buscarReservaPorId(idReserva);
+        if (r == null) throw new IllegalArgumentException("Reserva no encontrada.");
+        
+        // Solo permitir borrar si no está activa
+        if (r.getEstado() == EstadoReserva.CONFIRMADA || r.getEstado() == EstadoReserva.CHECK_IN_REALIZADO) {
+            throw new IllegalStateException("No se puede borrar una reserva activa. Cancélela primero.");
+        }
+        
+        reservas.remove(r);
+        sistema.guardarReservas();
     }
 
     public Reserva buscarReservaPorId(int id) {
-        for (Reserva r : reservas) if (r.getId() == id) return r;
-        return null;
+        return reservas.stream()
+                .filter(r -> r.getId() == id)
+                .findFirst()
+                .orElse(null);
     }
 
     public List<Reserva> getReservasDeClientePorCedula(String cedula) {
         return reservas.stream()
-                .filter(r -> cedula.equalsIgnoreCase(r.getCedulaCheckIn()))
-                .collect(java.util.stream.Collectors.toList());
-    }
-
-    // Getter para nextReservaId, por si se necesita desde fuera
-    public int getNextReservaId() {
-        return nextReservaId;
+                .filter(r -> r.getCedulaCheckIn().equalsIgnoreCase(cedula))
+                .collect(Collectors.toList());
     }
 }

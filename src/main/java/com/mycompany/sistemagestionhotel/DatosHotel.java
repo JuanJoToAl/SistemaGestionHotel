@@ -21,20 +21,24 @@ public class DatosHotel {
     }
 
     // Getters y Setters
+
     public Hotel getHotel() { return hotel; }
     public void setHotel(Hotel hotel) { this.hotel = hotel; }
 
-    public List<Habitacion> getHabitaciones() { return new ArrayList<>(habitaciones); }
-    public void setHabitaciones(List<Habitacion> habitaciones) { this.habitaciones = new ArrayList<>(habitaciones); }
+    // CORRECCIÓN: Devolver la lista real, no una copia
+    public List<Habitacion> getHabitaciones() { return habitaciones; }
+    public void setHabitaciones(List<Habitacion> habitaciones) { this.habitaciones = habitaciones; }
 
-    public List<Cliente> getClientes() { return new ArrayList<>(clientes); }
-    public void setClientes(List<Cliente> clientes) { this.clientes = new ArrayList<>(clientes); }
+    // CORRECCIÓN: Devolver la lista real
+    public List<Cliente> getClientes() { return clientes; }
+    public void setClientes(List<Cliente> clientes) { this.clientes = clientes; }
 
-    public List<Reserva> getReservas() { return new ArrayList<>(reservas); }
-    public void setReservas(List<Reserva> reservas) { this.reservas = new ArrayList<>(reservas); }
+    // CORRECCIÓN: Devolver la lista real (Esto soluciona que no se guarden los datos)
+    public List<Reserva> getReservas() { return reservas; }
+    public void setReservas(List<Reserva> reservas) { this.reservas = reservas; }
 
-    public List<Factura> getFacturas() { return new ArrayList<>(facturas); }
-    public void setFacturas(List<Factura> facturas) { this.facturas = new ArrayList<>(facturas); }
+    public List<Factura> getFacturas() { return facturas; }
+    public void setFacturas(List<Factura> facturas) { this.facturas = facturas; }
 
     public int getNextClienteId() { return nextClienteId; }
     public void setNextClienteId(int nextClienteId) { this.nextClienteId = nextClienteId; }

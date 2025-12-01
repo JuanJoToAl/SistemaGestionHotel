@@ -50,11 +50,16 @@ public class GestionHabitaciones {
     }
 
     public Habitacion buscarHabitacionPorNumero(int numero) {
-        for (Habitacion h : hotel.getHabitaciones()) {
-            if (h.getNumero() == numero) return h;
+    for (Habitacion h : hotel.getHabitaciones()) {
+        if (h.getNumero() == numero) {
+            // Verificar que no sea una habitación "fantasma" (número 0)
+            if (h.getNumero() != 0) {
+                return h;
+            }
         }
-        return null;
     }
+    return null;
+}
 
     public void agregarHabitacion(Habitacion habitacion) {
         hotel.agregarHabitacion(habitacion);
