@@ -76,11 +76,13 @@ public class MenuConsola {
         LocalDate ff = leerFecha("Fecha fin (YYYY-MM-DD): ");
         if (fi == null || ff == null) return;
 
-        List<Habitacion> disp = sistema.getGestionHabitaciones().buscarHabitacionesDisponibles(fi, ff);
+        List<Habitacion> disp = sistema.getGestionHabitaciones()
+                .buscarHabitacionesDisponibles(fi, ff);
         System.out.println("Habitaciones disponibles:");
         if(disp.isEmpty()) System.out.println("No hay habitaciones disponibles.");
         for (Habitacion h : disp) {
-            System.out.printf(" - %d | %s | %.0f\n", h.getNumero(), h.getTipo(), h.getPrecio());
+            System.out.printf(" - %d | %s | %.0f\n", h.getNumero(), h.getTipo(), 
+                    h.getPrecio());
         }
     }
 
@@ -107,7 +109,8 @@ public class MenuConsola {
 
         System.out.print("Número habitación: ");
         int numHab = leerInt();
-        Habitacion hab = sistema.getGestionHabitaciones().buscarHabitacionPorNumero(numHab);
+        Habitacion hab = sistema.getGestionHabitaciones().
+                buscarHabitacionPorNumero(numHab);
         if (hab == null) { System.out.println("Habitación no existe."); return; }
 
         LocalDate fi = leerFecha("Fecha inicio (YYYY-MM-DD): ");
@@ -118,7 +121,8 @@ public class MenuConsola {
         String pago = scanner.nextLine();
 
         try {
-            Reserva r = sistema.getGestionReservas().crearReserva(fi, ff, hab, pago, cliente.getCedula());
+            Reserva r = sistema.getGestionReservas().crearReserva(fi, ff, hab, 
+                    pago, cliente.getCedula());
             System.out.println("✅ Reserva creada ID: " + r.getId());
         } catch (Exception e) {
             System.out.println("Error al reservar: " + e.getMessage());
@@ -138,7 +142,8 @@ public class MenuConsola {
         System.out.print("Teléfono: ");
         String tel = scanner.nextLine();
         
-        return sistema.registrarCliente(new Cliente(0, nombre, cedula, email, tel));
+        return sistema.registrarCliente(new Cliente(0, nombre, cedula, 
+                email, tel));
     }
 
     private void manejarCheckIn() {
@@ -187,7 +192,8 @@ public class MenuConsola {
         
         try {
             Factura f = sistema.generarFactura(r, iva);
-            System.out.println("Factura generada ID: " + f.getId() + " Total: " + f.getTotal());
+            System.out.println("Factura generada ID: " + f.getId() + " Total: " 
+                    + f.getTotal());
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
         }
@@ -213,11 +219,13 @@ public class MenuConsola {
         System.out.println("--- Cliente: " + c.getNombre() + " ---");
         System.out.println("Reservas:");
         sistema.getGestionReservas().getReservasDeClientePorCedula(cedula)
-               .forEach(r -> System.out.println(" - ID:" + r.getId() + " Est:" + r.getEstado()));
+               .forEach(r -> System.out.println(" - ID:" + r.getId() + " Est:" 
+                       + r.getEstado()));
         
         System.out.println("Facturas:");
         sistema.getFacturasDeClientePorCedula(cedula)
-               .forEach(f -> System.out.println(" - ID:" + f.getId() + " Pagada:" + f.estaPagada() + " Total:" + f.getTotal()));
+               .forEach(f -> System.out.println(" - ID:" + f.getId() + " Pagada:" 
+                       + f.estaPagada() + " Total:" + f.getTotal()));
     }
 
     // --- Métodos de Admin ---
@@ -228,7 +236,8 @@ public class MenuConsola {
         System.out.print("Clave: ");
         String p = scanner.nextLine();
         
-        if (!sistema.getAdministrador().getUsuario().equals(u) || !sistema.getAdministrador().getContraseña().equals(p)) {
+        if (!sistema.getAdministrador().getUsuario().equals(u) 
+                || !sistema.getAdministrador().getContraseña().equals(p)) {
             System.out.println("Credenciales incorrectas.");
             return;
         }
@@ -256,18 +265,22 @@ public class MenuConsola {
     
     private void listarTodoAdmin() {
         System.out.println("--- Habitaciones ---");
-        sistema.getGestionHabitaciones().getTodasHabitaciones().forEach(h -> System.out.println(h.getNumero() + " " + h.getEstado()));
+        sistema.getGestionHabitaciones().getTodasHabitaciones().forEach(h 
+                -> System.out.println(h.getNumero() + " " + h.getEstado()));
         System.out.println("--- Reservas ---");
-        sistema.getReservas().forEach(r -> System.out.println(r.getId() + " " + r.getEstado()));
+        sistema.getReservas().forEach(r -> System.out.println(r.getId() 
+                + " " + r.getEstado()));
         System.out.println("--- Facturas ---");
-        sistema.getFacturas().forEach(f -> System.out.println(f.getId() + " Total: " + f.getTotal()));
+        sistema.getFacturas().forEach(f -> System.out.println(f.getId() 
+                + " Total: " + f.getTotal()));
     }
 
     private void agregarHabitacionAdmin() {
         System.out.print("Número: "); int num = leerInt();
         System.out.print("Tipo: "); String tipo = scanner.nextLine();
         System.out.print("Precio: "); double precio = leerDouble();
-        sistema.agregarHabitacion(new Habitacion(num, tipo, precio, EstadoHabitacion.DISPONIBLE));
+        sistema.agregarHabitacion(new Habitacion(num, tipo, precio, 
+                EstadoHabitacion.DISPONIBLE));
         System.out.println("Habitación agregada.");
     }
 
@@ -275,7 +288,7 @@ public class MenuConsola {
         System.out.print("Cédula a borrar: ");
         String cedula = scanner.nextLine();
         try {
-            sistema.getGestionClientes().borrarCliente(cedula); // Asegúrate de haber agregado este método en GestionClientes
+            sistema.getGestionClientes().borrarCliente(cedula);
             System.out.println("Cliente borrado.");
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
@@ -286,7 +299,7 @@ public class MenuConsola {
         System.out.print("ID Reserva a borrar: ");
         int id = leerInt();
         try {
-            sistema.getGestionReservas().borrarReserva(id); // Asegúrate de haber agregado este método en GestionReservas
+            sistema.getGestionReservas().borrarReserva(id); 
             System.out.println("Reserva borrada.");
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());

@@ -17,7 +17,6 @@ public class GestionClientes {
 public void borrarCliente(String cedula) throws IllegalArgumentException {
     Cliente clienteABorrar = null;
     
-    // Buscamos el cliente por cédula (asumiendo que tienes un método buscarClientePorCedula)
     for (Cliente c : clientes) {
         if (c.getCedula().equals(cedula)) {
             clienteABorrar = c;
@@ -26,18 +25,15 @@ public void borrarCliente(String cedula) throws IllegalArgumentException {
     }
 
     if (clienteABorrar == null) {
-        throw new IllegalArgumentException("❌ Error: Cliente con cédula " + cedula + " no encontrado.");
+        throw new IllegalArgumentException("❌ Error: Cliente con cédula " 
+                + cedula + " no encontrado.");
     }
 
-    // Nota: Aquí, en un sistema real, deberías verificar que el cliente 
-    // no tiene reservas activas. Por ahora, solo lo borra.
-
     if (clientes.remove(clienteABorrar)) {
-        // En un sistema persistente (base de datos o archivo), 
-        // aquí se llamaría al método para guardar los cambios.
-        // Si tienes un método de guardado en SistemaGestionHotel, deberás llamarlo desde allí.
+
     } else {
-        throw new IllegalArgumentException("❌ Error interno: No se pudo eliminar el cliente de la lista.");
+        throw new IllegalArgumentException("❌ Error interno: No se pudo "
+                + "eliminar el cliente de la lista.");
     }
 }
 
@@ -47,9 +43,11 @@ public void borrarCliente(String cedula) throws IllegalArgumentException {
      * @return El cliente ya registrado con su ID asignado.
      * @throws IllegalArgumentException si la cédula ya existe.
      */
-    public Cliente registrarCliente(Cliente nuevoCliente) throws IllegalArgumentException {
+    public Cliente registrarCliente(Cliente nuevoCliente) 
+            throws IllegalArgumentException {
         if (buscarClientePorCedula(nuevoCliente.getCedula()) != null) {
-            throw new IllegalArgumentException("Ya existe un cliente con la cédula " + nuevoCliente.getCedula());
+            throw new IllegalArgumentException("Ya existe un cliente con "
+                    + "la cédula " + nuevoCliente.getCedula());
         }
         
         // Asignar y actualizar el ID.

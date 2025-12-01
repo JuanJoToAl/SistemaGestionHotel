@@ -11,8 +11,8 @@ public class GestionReservas {
     private DatosHotel datos;
     private SistemaGestionHotel sistema;
 
-    public GestionReservas(List<Reserva> reservas, GestionHabitaciones gestionHabitaciones, 
-                           DatosHotel datos, SistemaGestionHotel sistema) {
+    public GestionReservas(List<Reserva> reservas, GestionHabitaciones 
+            gestionHabitaciones, DatosHotel datos, SistemaGestionHotel sistema) {
         this.reservas = reservas;
         this.gestionHabitaciones = gestionHabitaciones;
         this.datos = datos;
@@ -20,18 +20,23 @@ public class GestionReservas {
     }
 
     public Reserva crearReserva(LocalDate fechaInicio, LocalDate fechaFin, 
-                                Habitacion habitacion, String metodoPago, String cedulaCliente) {
+                                Habitacion habitacion, String metodoPago, 
+                                String cedulaCliente) {
         
         if (fechaFin.isBefore(fechaInicio)) {
-            throw new IllegalArgumentException("La fecha de fin no puede ser anterior a la de inicio.");
+            throw new IllegalArgumentException("La fecha de fin no puede "
+                    + "ser anterior a la de inicio.");
         }
 
         // Verificar disponibilidad
-        List<Habitacion> disponibles = gestionHabitaciones.buscarHabitacionesDisponibles(fechaInicio, fechaFin);
-        boolean estaDisponible = disponibles.stream().anyMatch(h -> h.getNumero() == habitacion.getNumero());
+        List<Habitacion> disponibles = gestionHabitaciones.
+                buscarHabitacionesDisponibles(fechaInicio, fechaFin);
+        boolean estaDisponible = disponibles.stream().anyMatch(h -> h.getNumero() 
+                == habitacion.getNumero());
 
         if (!estaDisponible) {
-            throw new IllegalStateException("La habitación " + habitacion.getNumero() + " no está disponible en esas fechas.");
+            throw new IllegalStateException("La habitación " 
+                    + habitacion.getNumero() + " no está disponible en esas fechas.");
         }
 
         // Crear la reserva
@@ -59,7 +64,7 @@ public class GestionReservas {
         Reserva r = buscarReservaPorId(reservaId);
         if (r == null) throw new NoSuchElementException("Reserva no encontrada con ID: " + reservaId);
         
-        // Validar que la reserva pertenezca al cliente (opcional pero recomendado)
+        // Validar que la reserva pertenezca al cliente 
         if (!r.getCedulaCheckIn().equals(cedulaCliente)) {
              // En este diseño simple, permitimos el check-in si coincide el ID, 
              // pero podrías lanzar error si la cédula no coincide.
@@ -71,18 +76,15 @@ public class GestionReservas {
 
     public void realizarCheckOut(int reservaId) {
         Reserva r = buscarReservaPorId(reservaId);
-        if (r == null) throw new NoSuchElementException("Reserva no encontrada con ID: " + reservaId);
+        if (r == null) throw new NoSuchElementException("Reserva no encontrada "
+                + "con ID: " + reservaId);
 
         // 1. Cambiar estado a FINALIZADA
         r.realizarCheckOut();
         
-        // 2. Liberar habitación (aunque tu lógica de disponibilidad se basa en fechas, 
-        // cambiar el estado de la habitación es buena práctica visual)
-        gestionHabitaciones.cambiarEstadoHabitacion(r.getHabitacion().getNumero(), EstadoHabitacion.DISPONIBLE);
-
-        // --- CORRECCIÓN: ELIMINAMOS EL PAGO AUTOMÁTICO ---
-        // sistema.marcarFacturaComoPagada(reservaId); <--- ESTO CAUSABA EL ERROR
-        // El pago ahora se hace manualmente con la opción 7 del menú
+        // 2. Liberar habitación 
+        gestionHabitaciones.cambiarEstadoHabitacion(r.getHabitacion().getNumero(), 
+                EstadoHabitacion.DISPONIBLE);
         
         // 3. Guardar cambios
         sistema.guardarReservas();
@@ -91,10 +93,12 @@ public class GestionReservas {
 
     public void cancelarReserva(int reservaId) {
         Reserva r = buscarReservaPorId(reservaId);
-        if (r == null) throw new NoSuchElementException("Reserva no encontrada con ID: " + reservaId);
+        if (r == null) throw new NoSuchElementException("Reserva no encontrada "
+                + "con ID: " + reservaId);
 
         if (r.getEstado() == EstadoReserva.FINALIZADA) {
-            throw new IllegalStateException("No se puede cancelar una reserva ya finalizada.");
+            throw new IllegalStateException("No se puede cancelar una reserva "
+                    + "ya finalizada.");
         }
 
         r.setEstado(EstadoReserva.CANCELADA);
@@ -104,11 +108,14 @@ public class GestionReservas {
     // Método para borrar reserva físicamente (Admin)
     public void borrarReserva(int idReserva) {
         Reserva r = buscarReservaPorId(idReserva);
-        if (r == null) throw new IllegalArgumentException("Reserva no encontrada.");
+        if (r == null) throw new IllegalArgumentException("Reserva no "
+                + "encontrada.");
         
         // Solo permitir borrar si no está activa
-        if (r.getEstado() == EstadoReserva.CONFIRMADA || r.getEstado() == EstadoReserva.CHECK_IN_REALIZADO) {
-            throw new IllegalStateException("No se puede borrar una reserva activa. Cancélela primero.");
+        if (r.getEstado() == EstadoReserva.CONFIRMADA || r.getEstado() 
+                == EstadoReserva.CHECK_IN_REALIZADO) {
+            throw new IllegalStateException("No se puede borrar una reserva "
+                    + "activa. Cancélela primero.");
         }
         
         reservas.remove(r);

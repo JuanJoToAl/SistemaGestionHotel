@@ -33,7 +33,8 @@ public class Factura {
 
     /**
      * Calcula el IVA y actualiza el total de la factura.
-     * @param porcentajeIVA porcentaje en forma decimal (por ejemplo 0.19 para 19%).
+     * @param porcentajeIVA porcentaje en forma decimal 
+     * (por ejemplo 0.19 para 19%).
      */
     public void calcularIVA(double porcentajeIVA) {
         this.iva = subtotal * porcentajeIVA;
@@ -41,7 +42,8 @@ public class Factura {
     }
 
     /**
-     * Genera/imprime la factura en consola. En una app real podría enviar a impresora o PDF.
+     * Genera/imprime la factura en consola. En una app real podría 
+     * enviar a impresora o PDF.
      */
     public void generarFactura() {
         System.out.println("\n=== FACTURA N° " + id + " ===");

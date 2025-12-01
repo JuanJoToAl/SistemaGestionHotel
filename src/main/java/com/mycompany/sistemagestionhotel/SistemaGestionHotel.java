@@ -25,10 +25,12 @@ public class SistemaGestionHotel {
         
         // 2. Inicialización de gestores (Usando los datos cargados)
         this.gestionClientes = new GestionClientes(datos.getClientes(), datos); 
-        this.gestionHabitaciones = new GestionHabitaciones(datos.getHotel(), datos.getReservas());
+        this.gestionHabitaciones = new GestionHabitaciones(datos.getHotel(), 
+                datos.getReservas());
         
         // 3. Inicializar GestionReservas con todas sus dependencias
-        this.gestionReservas = new GestionReservas(datos.getReservas(), gestionHabitaciones, datos, this);
+        this.gestionReservas = new GestionReservas(datos.getReservas(), 
+                gestionHabitaciones, datos, this);
     }
     
     // ==========================================
@@ -51,10 +53,12 @@ public class SistemaGestionHotel {
 
     public Factura generarFactura(Reserva reserva, double porcentajeIVA) {
         if (reserva.getEstado() != EstadoReserva.FINALIZADA) {
-            throw new IllegalArgumentException("Solo se puede facturar una reserva FINALIZADA.");
+            throw new IllegalArgumentException("Solo se puede facturar una "
+                    + "reserva FINALIZADA.");
         }
         
-        long noches = ChronoUnit.DAYS.between(reserva.getFechaInicio(), reserva.getFechaFin());
+        long noches = ChronoUnit.DAYS.between(reserva.getFechaInicio(), 
+                reserva.getFechaFin());
         if (noches <= 0) noches = 1; // Mínimo una noche
         
         double subtotal = noches * reserva.getHabitacion().getPrecio();
@@ -89,7 +93,8 @@ public class SistemaGestionHotel {
         if (encontrada) {
             guardarFacturas();
         } else {
-            throw new IllegalArgumentException("No se encontró factura para la reserva ID " + reservaId);
+            throw new IllegalArgumentException("No se encontró factura para "
+                    + "la reserva ID " + reservaId);
         }
     }
     
@@ -108,7 +113,8 @@ public class SistemaGestionHotel {
             // 1. Cargar Hotel
             Hotel hotelCargado = persistencia.cargarHotel();
             if (hotelCargado == null) {
-                hotelCargado = new Hotel("Hotel Paradise", "Calle Principal 123", "+57 1 2345678");
+                hotelCargado = new Hotel("Hotel Paradise", "Calle Principal 123", 
+                        "+57 1 2345678");
             }
             datos.setHotel(hotelCargado);
 
@@ -131,7 +137,8 @@ public class SistemaGestionHotel {
             datos.setNextClienteId(datos.getClientes().stream().mapToInt(Cliente::getId).max().orElse(0) + 1);
             
             // 5. Cargar Reservas (Requiere Habitaciones y Clientes ya cargados)
-            datos.setReservas(persistencia.cargarReservas(datos.getHabitaciones(), datos.getClientes()));
+            datos.setReservas(persistencia.cargarReservas(datos.getHabitaciones(), 
+                    datos.getClientes()));
             datos.setNextReservaId(datos.getReservas().stream().mapToInt(Reserva::getId).max().orElse(0) + 1);
 
             // 6. Cargar Facturas (Requiere Reservas ya cargadas)
@@ -141,13 +148,15 @@ public class SistemaGestionHotel {
             System.out.println("Datos cargados exitosamente.");
 
         } catch (IOException e) {
-            System.err.println("Advertencia: No se pudieron cargar todos los datos (posible primera ejecución): " + e.getMessage());
+            System.err.println("Advertencia: No se pudieron cargar todos los "
+                    + "datos (posible primera ejecución): " + e.getMessage());
             inicializarDatosVacios();
         }
     }
     
     private void inicializarDatosVacios() {
-        if (datos.getHotel() == null) datos.setHotel(new Hotel("Hotel Paradise", "Dir", "Tel"));
+        if (datos.getHotel() == null) datos.setHotel(new Hotel("Hotel Paradise", 
+                "Dir", "Tel"));
         if (datos.getClientes() == null) datos.setClientes(new ArrayList<>());
         if (datos.getHabitaciones() == null) datos.setHabitaciones(new ArrayList<>());
         if (datos.getReservas() == null) datos.setReservas(new ArrayList<>());
@@ -155,19 +164,23 @@ public class SistemaGestionHotel {
     }
 
     public void guardarClientes() {
-        try { persistencia.guardarClientes(datos.getClientes()); } catch (IOException e) { System.err.println("Error guardar clientes: " + e.getMessage()); }
+        try { persistencia.guardarClientes(datos.getClientes()); } 
+        catch (IOException e) { System.err.println("Error guardar clientes: " + e.getMessage()); }
     }
     
     public void guardarHabitaciones() {
-        try { persistencia.guardarHabitaciones(datos.getHotel()); } catch (IOException e) { System.err.println("Error guardar habitaciones: " + e.getMessage()); }
+        try { persistencia.guardarHabitaciones(datos.getHotel()); } 
+        catch (IOException e) { System.err.println("Error guardar habitaciones: " + e.getMessage()); }
     }
     
     public void guardarReservas() {
-        try { persistencia.guardarReservasUnificado(datos.getClientes(), datos.getReservas()); } catch (IOException e) { System.err.println("Error guardar reservas: " + e.getMessage()); }
+        try { persistencia.guardarReservasUnificado(datos.getClientes(), 
+                datos.getReservas()); } catch (IOException e) { System.err.println("Error guardar reservas: " + e.getMessage()); }
     }
     
     public void guardarFacturas() {
-        try { persistencia.guardarFacturas(datos.getFacturas()); } catch (IOException e) { System.err.println("Error guardar facturas: " + e.getMessage()); }
+        try { persistencia.guardarFacturas(datos.getFacturas()); } 
+        catch (IOException e) { System.err.println("Error guardar facturas: " + e.getMessage()); }
     }
     
     // Método auxiliar para agregar habitación desde el menú admin
