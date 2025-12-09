@@ -1,0 +1,176 @@
+
+
+package com.mycompany.sistemagestionhotel.ui;
+
+import com.mycompany.sistemagestionhotel.*;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+
+public class HotelGUI extends JFrame {
+
+    private final SistemaGestionHotel sistema;
+
+    public HotelGUI(SistemaGestionHotel sistema) {
+        this.sistema = sistema;
+
+        setTitle("Sistema de Gestión Hotelera");
+        setSize(950, 600);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+
+        JTabbedPane tabs = new JTabbedPane();
+        tabs.add("Clientes", crearPanelClientes());
+        tabs.add("Habitaciones", crearPanelHabitaciones());
+        tabs.add("Reservas", crearPanelReservas());
+
+        add(tabs);
+        setVisible(true);
+    }
+
+    
+    // PANEL CLIENTES
+    private JPanel crearPanelClientes() {
+        JPanel panel = new JPanel(new BorderLayout());
+
+        DefaultTableModel model = new DefaultTableModel(new String[]{"Cédula", "Nombre", "Teléfono"}, 0);
+        JTable tabla = new JTable(model);
+
+        // Cargar clientes reales
+        for (Cliente c : sistema.getClientes()) {
+            model.addRow(new Object[]{c.getCedula(), c.getNombre(), c.getTelefono()});
+        }
+
+        JScrollPane scroll = new JScrollPane(tabla);
+
+        JPanel controles = new JPanel();
+        JTextField ced = new JTextField(10);
+        JTextField nom = new JTextField(10);
+        JTextField tel = new JTextField(10);
+        JButton add = new JButton("Agregar");
+
+        controles.add(new JLabel("Cédula:")); controles.add(ced);
+        controles.add(new JLabel("Nombre:")); controles.add(nom);
+        controles.add(new JLabel("Teléfono:")); controles.add(tel);
+        controles.add(add);
+
+        add.addActionListener(e -> {
+            try {
+                sistema.registrarCliente(ced.getText(), nom.getText(), tel.getText());
+                model.addRow(new Object[]{ced.getText(), nom.getText(), tel.getText()});
+                ced.setText(""); nom.setText(""); tel.setText("");
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage());
+            }
+        });
+
+        panel.add(scroll, BorderLayout.CENTER);
+        panel.add(controles, BorderLayout.SOUTH);
+        return panel;
+    }
+
+  
+    // PANEL HABITACIONES
+    private JPanel crearPanelHabitaciones() {
+        JPanel panel = new JPanel(new BorderLayout());
+
+        DefaultTableModel model = new DefaultTableModel(new String[]{"Número", "Tipo", "Precio"}, 0);
+        JTable tabla = new JTable(model);
+
+        // Cargar habitaciones reales
+        for (Habitacion h : sistema.getGestionHabitaciones().listarHabitaciones()) {
+            model.addRow(new Object[]{h.getNumero(), h.getTipo(), h.getPrecio()});
+        }
+
+        JScrollPane scroll = new JScrollPane(tabla);
+
+        JPanel controles = new JPanel();
+        JTextField num = new JTextField(5);
+        JTextField tipo = new JTextField(10);
+        JTextField precio = new JTextField(10);
+        JButton add = new JButton("Agregar");
+
+        controles.add(new JLabel("Número:")); controles.add(num);
+        controles.add(new JLabel("Tipo:")); controles.add(tipo);
+        controles.add(new JLabel("Precio:")); controles.add(precio);
+        controles.add(add);
+
+        add.addActionListener(e -> {
+            try {
+                int n = Integer.parseInt(num.getText());
+                double p = Double.parseDouble(precio.getText());
+                sistema.getGestionHabitaciones().agregarHabitacion(n, tipo.getText(), p);
+                model.addRow(new Object[]{num.getText(), tipo.getText(), precio.getText()});
+                num.setText(""); tipo.setText(""); precio.setText("");
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+            }
+        });
+
+        panel.add(scroll, BorderLayout.CENTER);
+        panel.add(controles, BorderLayout.SOUTH);
+        return panel;
+    }
+
+  
+    // PANEL RESERVAS
+    private JPanel crearPanelReservas() {
+        JPanel panel = new JPanel(new BorderLayout());
+
+        DefaultTableModel model = new DefaultTableModel(new String[]{"Cliente", "Habitación", "Días", "Total"}, 0);
+        JTable tabla = new JTable(model);
+
+        // Cargar reservas reales
+        for (Reserva r : sistema.getReservas()) {
+            model.addRow(new Object[]{r.getCliente().getNombre(), r.getHabitacion().getNumero(), r.getDias(), r.calcularTotal()});
+        }
+
+        JScrollPane scroll = new JScrollPane(tabla);
+
+        JPanel controles = new JPanel();
+        JTextField ced = new JTextField(10);
+        JTextField hab = new JTextField(5);
+        JTextField dias = new JTextField(5);
+        JButton add = new JButton("Crear Reserva");
+
+        controles.add(new JLabel("Cédula Cliente:")); controles.add(ced);
+        controles.add(new JLabel("Habitación:")); controles.add(hab);
+        controles.add(new JLabel("Días:")); controles.add(dias);
+        controles.add(add);
+
+        add.addActionListener(e -> {
+            try {
+                Cliente cliente = sistema.buscarCliente(ced.getText());
+                Habitacion habitacion = sistema.getGestionHabitaciones().buscarHabitacion(Integer.parseInt(hab.getText()));
+
+                Reserva r = sistema.getGestionReservas().crearReserva(cliente, habitacion, Integer.parseInt(dias.getText()));
+                sistema.getReservas().add(r);
+
+                model.addRow(new Object[]{cliente.getNombre(), habitacion.getNumero(), r.getDias(), r.calcularTotal()});
+
+                ced.setText(""); hab.setText(""); dias.setText("");
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage());
+            }
+        });
+
+        panel.add(scroll, BorderLayout.CENTER);
+        panel.add(controles, BorderLayout.SOUTH);
+        return panel;
+    }
+}
+
+
+// CLASE PARA LANZAR LA INTERFAZ
+package com.mycompany.interfaz1;
+
+import com.mycompany.sistemagestionhotel.*;
+import com.mycompany.sistemagestionhotel.ui.HotelGUI;
+
+public class Interfaz1 {
+    public static void main(String[] args) {
+        SistemaGestionHotel sistema = new SistemaGestionHotel();
+        sistema.cargarDatos(); // si existe método
+        new HotelGUI(sistema);
+    }
+}
