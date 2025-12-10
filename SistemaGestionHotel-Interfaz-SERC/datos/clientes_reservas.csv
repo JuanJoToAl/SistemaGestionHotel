@@ -1,0 +1,2 @@
+Cliente_ID;Nombre_Cliente;Cedula_Cliente;Email_Cliente;Telefono_Cliente;Reserva_ID;Fecha_Inicio_Reserva;Fecha_Fin_Reserva;Numero_Habitacion;Tipo_Habitacion;Estado_Reserva;Metodo_Pago;Total_Reserva
+1;asd;1;asdd@a.c;33124;2;2025-12-09;2025-12-12;1;Sencilla;FINALIZADA;1;210000.00
