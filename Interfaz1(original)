@@ -1,0 +1,189 @@
+package com.mycompany.sistemagestionhotel1;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.ArrayList;
+
+public class HotelUI extends JFrame {
+
+    
+    // CLASES INTERNAS DEL SISTEMA
+
+    class Habitacion {
+        int numero;
+        String tipo;
+        double precio;
+        boolean disponible = true;
+
+        Habitacion(int numero, String tipo, double precio) {
+            this.numero = numero;
+            this.tipo = tipo;
+            this.precio = precio;
+        }
+
+        void ocupar() { disponible = false; }
+        void liberar() { disponible = true; }
+
+        @Override
+        public String toString() {
+            return "Habitación " + numero + " (" + tipo + ") $" + precio +
+                    (disponible ? " - Disponible" : " - Ocupada");
+        }
+    }
+
+    class Reserva {
+        String cliente;
+        Habitacion habitacion;
+        int dias;
+
+        Reserva(String cliente, Habitacion habitacion, int dias) {
+            this.cliente = cliente;
+            this.habitacion = habitacion;
+            this.dias = dias;
+        }
+
+        double calcularCosto() {
+            return habitacion.precio * dias;
+        }
+
+        @Override
+        public String toString() {
+            return "Cliente: " + cliente +
+                    " | Habitación: " + habitacion.numero +
+                    " | Días: " + dias +
+                    " | Total: $" + calcularCosto();
+        }
+    }
+
+    class Factura {
+        Reserva reserva;
+
+        Factura(Reserva reserva) {
+            this.reserva = reserva;
+        }
+
+        String generar() {
+            return "===== FACTURA =====\n" +
+                    "Cliente: " + reserva.cliente + "\n" +
+                    "Habitación: " + reserva.habitacion.numero + "\n" +
+                    "Tipo: " + reserva.habitacion.tipo + "\n" +
+                    "Días: " + reserva.dias + "\n" +
+                    "Total a pagar: $" + reserva.calcularCosto() + "\n";
+        }
+    }
+
+    
+    // DATOS DEL SISTEMA
+
+    ArrayList<Habitacion> habitaciones = new ArrayList<>();
+    ArrayList<Reserva> reservas = new ArrayList<>();
+
+    
+    // COMPONENTES DE LA UI
+
+    private JButton btnReservar, btnMostrar, btnHabitaciones;
+    private JTextArea areaTexto;
+
+    
+    // CONSTRUCTOR PRINCIPAL
+
+    public HotelUI() {
+        super("Sistema de Gestión Hotel");
+
+        cargarHabitaciones();
+        configurarVentana();
+        configurarEventos();
+
+        setVisible(true);
+    }
+
+    private void cargarHabitaciones() {
+        habitaciones.add(new Habitacion(101, "Sencilla", 70000));
+        habitaciones.add(new Habitacion(102, "Doble", 120000));
+        habitaciones.add(new Habitacion(201, "Suite", 250000));
+    }
+
+    private void configurarVentana() {
+        setSize(600, 450);
+        setLayout(new BorderLayout());
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        JPanel panelBotones = new JPanel();
+        panelBotones.setLayout(new FlowLayout());
+
+        btnReservar = new JButton("Crear Reserva");
+        btnMostrar = new JButton("Mostrar Reservas");
+        btnHabitaciones = new JButton("Ver Habitaciones");
+
+        panelBotones.add(btnReservar);
+        panelBotones.add(btnMostrar);
+        panelBotones.add(btnHabitaciones);
+
+        add(panelBotones, BorderLayout.NORTH);
+
+        areaTexto = new JTextArea();
+        add(new JScrollPane(areaTexto), BorderLayout.CENTER);
+    }
+
+    private void configurarEventos() {
+        btnReservar.addActionListener(e -> crearReserva());
+
+        btnMostrar.addActionListener(e -> {
+            if (reservas.isEmpty()) {
+                areaTexto.setText("No hay reservas registradas.");
+            } else {
+                String texto = "";
+                for (Reserva r : reservas) texto += r + "\n";
+                areaTexto.setText(texto);
+            }
+        });
+
+        btnHabitaciones.addActionListener(e -> {
+            String texto = "=== HABITACIONES ===\n";
+            for (Habitacion h : habitaciones) texto += h + "\n";
+            areaTexto.setText(texto);
+        });
+    }
+
+    private void crearReserva() {
+        String nombre = JOptionPane.showInputDialog("Ingrese nombre del cliente:");
+        if (nombre == null || nombre.isEmpty()) return;
+
+        String tipo = JOptionPane.showInputDialog("Tipo de Habitación: Sencilla / Doble / Suite");
+        if (tipo == null || tipo.isEmpty()) return;
+
+        String diasStr = JOptionPane.showInputDialog("Número de días:");
+        if (diasStr == null) return;
+
+        try {
+            int dias = Integer.parseInt(diasStr);
+
+            Habitacion h = buscarDisponible(tipo);
+            if (h == null) {
+                JOptionPane.showMessageDialog(this, "No hay habitaciones disponibles.");
+                return;
+            }
+
+            h.ocupar();
+            Reserva r = new Reserva(nombre, h, dias);
+            reservas.add(r);
+
+            Factura factura = new Factura(r);
+            areaTexto.setText(factura.generar());
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error: ingrese un número válido.");
+        }
+    }
+
+    private Habitacion buscarDisponible(String tipo) {
+        for (Habitacion h : habitaciones) {
+            if (h.tipo.equalsIgnoreCase(tipo) && h.disponible) return h;
+        }
+        return null;
+    }
+
+    public static void main(String[] args) {
+        new HotelUI();
+    }
+}
